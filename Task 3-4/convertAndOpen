@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+pdflatex Task.tex
+open Task.pdf

@@ -1,0 +1,14 @@
+alter table TeamPositions add foreign key (PersonId) references Persons (PersonId) on delete cascade;
+alter table TeamPositions add foreign key (PositionId) references Positions (PositionId) on delete cascade;
+alter table TeamPositions add foreign key (TeamId) references Teams (TeamId) on delete cascade;
+alter table Racers add foreign key (TeamId) references Teams (TeamId) on delete cascade;
+alter table Racers add foreign key (SponsorId) references Sponsors (SponsorId) on delete cascade;
+alter table RaceParticipants add foreign key (RacerId) references Racers (RacerId) on delete cascade deferrable initially deferred;
+alter table RaceParticipants add foreign key (RaceId) references Races (RaceId) on delete cascade deferrable initially deferred;
+alter table TeamInRaces add foreign key (TeamId) references Teams (TeamId) on delete cascade deferrable initially deferred;
+alter table TeamInRaces add foreign key (RaceId) references Races (RaceId) on delete cascade deferrable initially deferred;
+alter table Races add foreign key (RaceId, RacerId) references RaceParticipants (RaceId, RacerId) on delete cascade deferrable initially deferred;
+alter table Races add foreign key (RaceId, TeamId) references TeamInRaces (RaceId, TeamId) on delete cascade deferrable initially deferred;
+alter table Races add foreign key (SponsorId) references Sponsors (SponsorId) on delete cascade;
+alter table RaceInChampionships add foreign key (ChampionshipId) references Championships (ChampionshipId) on delete cascade;
+alter table RaceInChampionships add foreign key (RaceId) references Races (RaceId) on delete cascade;

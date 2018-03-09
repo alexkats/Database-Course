@@ -1,0 +1,412 @@
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T2A]{fontenc}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{color}
+
+\renewcommand{\lstlistingname}{Code}
+
+\begin{document}
+
+\lstset{
+    language=SQL,
+    basicstyle=\small\sffamily,
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{white},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=2,
+    captionpos=t,
+    breaklines=true,
+    breakatwhitespace=false,
+    escapeinside={\%*}{*)}
+}
+
+\hfill \textbf{Кацман Алексей}
+
+\hfill \textbf{M3438}
+
+\bigskip
+
+\section{Заполнение тестовыми данными в SQL}
+
+\begin{lstlisting}[label=test,caption={Заполнение тестовыми данными}]
+drop database if exists deanery_6;
+create database deanery_6;
+use deanery_6;
+
+create table Students(
+    s_id int primary key,
+    s_name varchar(50)) default charset='utf8';
+
+create table Groups(
+    g_id int primary key,
+    g_name varchar(5)) default charset='utf8';
+
+create table Lecturers(
+    l_id int primary key,
+    l_name varchar(50)) default charset='utf8';
+
+create table Courses(
+    c_id int primary key,
+    c_name varchar(50)) default charset='utf8';
+
+create table StudentGroups(
+    s_id int primary key,
+    g_id int) default charset='utf8';
+
+create table Marks(
+    s_id int,
+    c_id int,
+    mark char,
+    primary key (s_id, c_id)) default charset='utf8';
+
+create table Plans(
+    g_id int,
+    c_id int,
+    l_id int,
+    primary key (g_id, c_id)) default charset='utf8';
+
+insert into Students (s_id, s_name) values
+    (1, "Ivanov"),
+    (2, "Petrov"),
+    (3, "Sidorov"),
+    (4, "Fedorov"),
+    (5, "Timofeev");
+
+insert into Groups (g_id, g_name) values
+    (1, "M3437"),
+    (2, "M3438"),
+    (3, "M3439");
+
+insert into Courses (c_id, c_name) values
+    (1, "Databases"),
+    (2, "Java"),
+    (3, "Algorithms");
+
+insert into Lecturers (l_id, l_name) values
+    (1, "Korneev"),
+    (2, "Stankevich");
+
+insert into StudentGroups (s_id, g_id) values
+    (1, 1),
+    (2, 2),
+    (3, 2),
+    (4, 3),
+    (5, 3);
+
+insert into Plans (g_id, c_id, l_id) values
+    (1, 1, 1),
+    (1, 2, 1),
+    (1, 3, 2),
+    (2, 1, 1),
+    (2, 2, 1),
+    (2, 3, 2),
+    (3, 2, 1);
+
+insert into Marks (s_id, c_id, mark) values
+    (1, 1, 'B'),
+    (1, 2, 'A'),
+    (1, 3, 'C'),
+    (2, 1, 'B'),
+    (3, 1, 'D');
+\end{lstlisting}
+
+\section{ДЗ 6}
+
+\subsection{Информация о студентах с заданной оценкой по предмету "Базы данных"}
+
+\bigskip
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $C$ :: $Courses$; $M$ :: $Marks$; select $S$ where $\exists C$ ($C.c\_name$ = "Databases" $\wedge$ $\exists M$ ($s\_id$ = $M.s\_id$ $\wedge$ $M.mark$ = MARK $\wedge$ $C.c\_id$ = $M.c\_id$))
+
+MARK - заданная оценка
+
+\item Datalog
+
+$A$($s\_id$) :- $Marks$($s\_id$, Course, MARK), $Courses$(Course, "Databases")
+
+MARK - заданная оценка
+
+\item SQL
+
+\begin{lstlisting}[label=task1,caption={Задание 1}]
+select s_id from Students, Courses where
+    Courses.c_name = "Databases" and
+    (exists (select * from Marks where
+            Students.s_id = Marks.s_id and
+            Marks.mark = 'B' and
+            Courses.c_id = Marks.c_id));
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{Информация о студентах не имеющих оценки по предмету "Базы данных"}
+
+\subsubsection{среди всех студентов}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $C$ :: $Courses$; $M$ :: $Marks$; select $S$ where $! \exists C$ ($C.c\_name$ = "Databases" $\wedge$ $\exists M$ ($s\_id$ = $M.s\_id$ $\wedge$ $C.c\_id$ = $M.c\_id$))
+
+\item Datalog
+
+$ExistingMarks$('A');
+$ExistingMarks$('B');
+$ExistingMarks$('C');
+$ExistingMarks$('D');
+$ExistingMarks$('E')
+
+$A$($s\_id$) :- $Students$($s\_id$, $\_$), not $Marks$($s\_id$, Course, Mark), $Courses$(Course, "Databases"), $ExistingMarks$(Mark)
+
+\item SQL
+
+\begin{lstlisting}[label=task2a,caption={Задание 2(а)}]
+select s_id from Students where
+    not exists (select * from Courses where
+        Courses.c_name = "Databases" and
+        (exists (select * from Marks where
+                Students.s_id = Marks.s_id and
+                Courses.c_id = Marks.c_id)));
+\end{lstlisting}
+
+\end{itemize}
+
+\subsubsection{среди студентов, у которых есть этот предмет}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $C$ :: $Courses$; $M$ :: $Marks$; $SG$ :: $StudentGroups$; $P$ :: $Plans$; select $S$ where $! \exists C$ ($C.c\_name$ = "Databases" $\wedge$ $\exists M$ ($s\_id$ = $M.s\_id$ $\wedge$ $C.c\_id$ = $M.c\_id$)) $\wedge$ $\exists SG,\ P$ ($s\_id$ = $SG.s\_id$ $\wedge$ $SG.s\_id$ = $P.s\_id$ $\wedge$ $C.c\_id$ = $P.c\_id$)
+
+\item Datalog
+
+$ExistingMarks$('A');
+$ExistingMarks$('B');
+$ExistingMarks$('C');
+$ExistingMarks$('D');
+$ExistingMarks$('E')
+
+$A$($s\_id$) :- $StudentGroups$($s\_id$, $g\_id$), $Plans$($g\_id$, Course, $\_$), $Courses$(Course, "Databases")
+
+$B$($s\_id$) :- $Students$($s\_id$, $\_$), not $Marks$($s\_id$, Course, Mark), $Courses$(Course, "Databases"), $ExistingMarks$(Mark)
+
+$C$($s\_id$) :- $A$($s\_id$), $B$($s\_id$)
+
+\item SQL
+
+\begin{lstlisting}[label=task2b,caption={Задание 2(б)}]
+select s_id from Students where
+    not exists (select * from Courses where
+        Courses.c_name = "Databases" and
+        (exists (select * from Marks where
+                Students.s_id = Marks.s_id and
+                Courses.c_id = Marks.c_id)) and
+        (exists (select * from StudentGroups where
+                exists (select * from Plans where
+                    StudentGroups.s_id = Students.s_id and
+                    StudentGroups.g_id = Plans.g_id and
+                    Plans.c_id = Courses.c_id))));
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{Информация о студентах, имеющих хотя бы одну оценку у заданного лектора}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $M$ :: $Marks$; $L$ :: $Lecturers$; $SG$ :: $StudentGroups$; $P$ :: $Plans$; select $S$ where $\exists M,\ L,\ SG,\ P$ ($s\_id$ = $M.s\_id$ $\wedge$ $P.s\_id$ = $M.s\_id$ $\wedge$ $s\_id$ = $SG.s\_id$ $\wedge$ $P.s\_id$ = $SG.s\_id$ $\wedge$ $L.l\_id$ = $P.l\_id$ $\wedge$ $L.l\_name$ = LNAME
+
+LNAME - заданное имя лектора
+
+\item Datalog
+
+$A$($s\_id$) :- $Marks$($s\_id$, $g\_id$, $\_$), $StudentGroups$($s\_id$, $g\_id$), $Plans$($g\_id$, $c\_id$, $l\_id$), $Lecturers$($l\_id$, LNAME)
+
+LNAME - заданное имя лектора
+
+\item SQL
+
+\begin{lstlisting}[label=task3,caption={Задание 3}]
+select distinct Students.s_id from Students, Lecturers, Marks, StudentGroups, Plans where
+    Marks.s_id = Students.s_id and
+    Marks.c_id = Plans.c_id and
+    StudentGroups.s_id = Students.s_id and
+    StudentGroups.g_id = Plans.g_id and
+    Lecturers.l_id = Plans.l_id and
+    Lecturers.l_name = "Korneev";
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{Идентификаторы студентов, не имеющих ни одной оценки у заданного лектора}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $M$ :: $Marks$; $L$ :: $Lecturers$; $SG$ :: $StudentGroups$; $P$ :: $Plans$; select $S$ where $! \exists M,\ L,\ SG,\ P$ ($s\_id$ = $M.s\_id$ $\wedge$ $P.s\_id$ = $M.s\_id$ $\wedge$ $s\_id$ = $SG.s\_id$ $\wedge$ $P.s\_id$ = $SG.s\_id$ $\wedge$ $L.l\_id$ = $P.l\_id$ $\wedge$ $L.l\_name$ = LNAME
+
+LNAME - заданное имя лектора
+
+\item Datalog
+
+$A$($s\_id$) :- $Marks$($s\_id$, $g\_id$, $\_$), $StudentGroups$($s\_id$, $g\_id$), $Plans$($g\_id$, $c\_id$, $l\_id$), $Lecturers$($l\_id$, LNAME)
+
+$B$($s\_id$) :- $Students$($s\_id$, $\_$), not $A$($s\_id$)
+
+LNAME - заданное имя лектора
+
+\item SQL
+
+\begin{lstlisting}[label=task4,caption={Задание 4}]
+select Students.s_id from Students where
+    not exists (select * from Lecturers, Marks, StudentGroups, Plans where
+        Marks.s_id = Students.s_id and
+        Marks.c_id = Plans.c_id and
+        StudentGroups.s_id = Students.s_id and
+        StudentGroups.g_id = Plans.g_id and
+        Lecturers.l_id = Plans.l_id and
+        Lecturers.l_name = "Korneev");
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{Все студенты, имеющие оценки по всем предметам заданного лектора}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $M$ :: $Marks$; $L$ :: $Lecturers$; $SG$ :: $StudentGroups$; $P$ :: $Plans$; select $S$ where $\exists L$ ($L.l\_name$ = LNAME $\wedge$ $\forall M,\ SG,\ P$ (($s\_id$ = $SG.s\_id$ $\wedge$ $P.s\_id$ = $SG.s\_id$ $\wedge$ $L.l\_id$ = $P.l\_id$) $\rightarrow$ ($s\_id$ = $M.s\_id$ $\wedge$ $P.c\_id$ = $M.c\_id$)))
+
+LNAME - заданное имя лектора
+
+\item Datalog
+
+$ExistingMarks$('A');
+$ExistingMarks$('B');
+$ExistingMarks$('C');
+$ExistingMarks$('D');
+$ExistingMarks$('E')
+
+$A$($s\_id$) :- $Students$($s\_id$, $\_$), $StudentGroups$($s\_id$, $g\_id$), $Lecturers$($l\_id$, LNAME), $Plans$($g\_id$, $c\_id$, $l\_id$), not $Marks$($s\_id$, $c\_id$, Mark), $ExistingMarks$(Mark)
+
+$B$($s\_id$) :- $Students$($s\_id$, $\_$), not $A$($s\_id$)
+
+LNAME - заданное имя лектора
+
+\item SQL
+
+\begin{lstlisting}[label=task5,caption={Задание 5}]
+select Students.s_id from Students, Lecturers where
+    Lecturers.l_name = "Stankevich" and
+    not exists (select * from Marks, StudentGroups, Plans where
+        not (not (StudentGroups.s_id = Students.s_id and
+                StudentGroups.g_id = Plans.g_id and
+                Lecturers.l_id = Plans.l_id) or
+            (Marks.c_id = Plans.c_id and
+                Marks.s_id = Students.s_id)));
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{Для каждого студента имя и курсы, которые он должен посещать}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $C$ :: $Courses$; $SG$ :: $StudentGroups$; $P$ :: $Plans$; select $S.s\_name$, $C.c\_name$ from $S$, $C$ where $\exists S,\ C, SG,\ P$ ($S.s\_id$ = $SG.s\_id$ $\wedge$ $P.g\_id$ = $SG.g\_id$ $\wedge$ $C.c\_id$ = $P.c\_id$)
+
+\item Datalog
+
+$A$($s\_name$, $c\_name$) :- $Students$($s\_id$, $s\_name$), $StudentGroups$($s\_id$, $g\_id$), $Plans$($g\_id$, $c\_id$, $\_$), $Courses$($c\_id$, $c\_name$)
+
+\item SQL
+
+\begin{lstlisting}[label=task6,caption={Задание 6}]
+select Students.s_name, Courses.c_name from Students, Courses, StudentGroups, Plans where
+    Students.s_id = StudentGroups.s_id and
+    StudentGroups.g_id = Plans.g_id and
+    Plans.c_id = Courses.c_id;
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{По лектору всех студентов, у которых он хоть что-нибудь преподавал}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S$ :: $Students$; $L$ :: $Lecturers$; $SG$ :: $StudentGroups$; $P$ :: $Plans$; select $L.l\_name$, $S.s\_name$ from $L$, $S$ where $\exists S,\ L,\ SG,\ P$ ($S.s\_id$ = $SG.s\_id$ $\wedge$ $P.g\_id$ = $SG.g\_id$ $\wedge$ $L.l\_id$ = $P.l\_id$)
+
+\item Datalog
+
+$A$($l\_name$, $s\_name$) :- $Students$($s\_id$, $s\_name$), $StudentGroups$($s\_id$, $g\_id$), $Plans$($g\_id$, $\_$, $l\_id$), $Lecturers$($l\_id$, $l\_name$)
+
+\item SQL
+
+\begin{lstlisting}[label=task7,caption={Задание 7}]
+select distinct Lecturers.l_name, Students.s_name from Students, Lecturers, StudentGroups, Plans where
+    Students.s_id = StudentGroups.s_id and
+    StudentGroups.g_id = Plans.g_id and
+    Plans.l_id = Lecturers.l_id;
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{Пары студентов, такие, что все сданные первым студентом предметы сдал и второй студент}
+
+\begin{itemize}
+
+\item Исчисление кортежей
+
+$S1$ :: $Students$; $S2$ :: $Students$; $M1$ :: $Marks$, $M2$ :: $Marks$; select $S1.s\_id$, $S2.s\_id$ from $S1$, $S2$ where $\forall M1$ ($S1.s\_id$ = $M1.s\_id$ $\rightarrow$ $\exists M2$ ($S2.s\_id$ = $M2.s\_id$ $\wedge$ $M1.c\_id$ = $M2.c\_id$))
+
+\item Datalog
+
+$ExistingMarks$('A');
+$ExistingMarks$('B');
+$ExistingMarks$('C');
+$ExistingMarks$('D');
+$ExistingMarks$('E')
+
+$A$($s1\_id$, $s2\_id$) :- $Students$($s1\_id$, $\_$), $Students$($s2\_id$, $\_$)
+
+$B$($s1\_id$, $s2\_id$) :- $Students$($s1\_id$, $\_$), $Students$($s2\_id$, $\_$), $Marks$($s1\_id$, $c\_id$, Mark1), not $Marks$($s2\_id$, $c\_id$, Mark2), $ExistingMarks$(Mark1), $ExistingMarks$(Mark2)
+
+$C$($s1\_id$, $s2\_id$) :- $A$($s1\_id$, $s2\_id$), not $B$($s1\_id$, $s2\_id$)
+
+\item SQL
+
+\begin{lstlisting}[label=task8,caption={Задание 8}]
+select S1.s_id, S2.s_id
+    from Students as S1, Students as S2 where
+        not exists (select * from Marks as M1 where
+            not (not S1.s_id = M1.s_id or
+                (exists (select * from Marks as M2 where
+                        S2.s_id = M2.s_id and M1.c_id = M2.c_id))));
+\end{lstlisting}
+
+\end{itemize}
+
+\end{document}

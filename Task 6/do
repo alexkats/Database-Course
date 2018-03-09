@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+pdflatex Task\ 6.tex
+open Task\ 6.pdf

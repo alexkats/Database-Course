@@ -1,0 +1,170 @@
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T2A]{fontenc}
+\usepackage[english,russian]{babel}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\hfill \textbf{Кацман Алексей}
+
+\hfill \textbf{M3438}
+
+\bigskip
+
+\section{ДЗ 3}
+\subsection{Атрибуты}
+
+\medskip
+
+StudentId, StudentName, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark.
+
+\subsection{Функциональные зависимости}
+
+\medskip
+
+StudentId $\rightarrow$ StudentName
+
+\noindent GroupId $\rightarrow$ GroupName
+
+\noindent CourseId $\rightarrow$ CourseName
+
+\noindent LecturerId $\rightarrow$ LecturerName
+
+\noindent StudentId, GroupId, CourseId $\rightarrow$ Mark
+
+\noindent StudentId, GroupId, CourseId, LecturerId $\rightarrow$ Mark
+
+\medskip
+
+Будем считать, что:
+
+\begin{itemize}
+
+\item По студенту нельзя определить группу, так как она могла смениться.
+
+\item По курсу нельзя определить преподавателя, так как по одному курсу их может быть несколько.
+
+\end{itemize}
+
+\medskip
+
+Также заметим, что последнее правило можно выкинуть, так как если есть функциональная зависимость $X\ \rightarrow\  Y$, то есть и функциональная зависимость $X\ +\ \{a\}\ \rightarrow\ Y$.
+
+\subsection{Ключи}
+
+\medskip
+
+$\{$StudentId, GroupId, CourseId, LecturerId$\}$ является ключом, так как $\{$StudentId, GroupId, CourseId, LecturerId$\}^{+}$ содержит множество всех атрибутов.
+
+\subsection{Неприводимое множество функциональных зависимостей}
+
+\medskip
+
+\begin{itemize}
+
+\item Сначала расщепим правые части:
+
+\medskip
+
+StudentId $\rightarrow$ StudentName
+
+GroupId $\rightarrow$ GroupName
+
+CourseId $\rightarrow$ CourseName
+
+LecturerId $\rightarrow$ LecturerName
+
+StudentId, GroupId, CourseId $\rightarrow$ Mark
+
+\medskip
+
+\item Теперь будем минимизировать по включению левые части.
+
+\medskip
+
+$\{$StudentId, GroupId, CourseId$\}^{+}$
+
+\begin{itemize}
+
+\item $\{$StudentId, GroupId, CourseId$\}$
+
+\item $\{$StudentId, GroupId, CourseId, StudentName, GroupName, CourseName, Mark$\}$
+
+\end{itemize}
+
+\medskip
+
+\begin{enumerate}
+
+\item $\{$StudentId, GroupId$\}^{+}$
+
+\begin{itemize}
+
+\item $\{$StudentId, GroupId$\}$
+
+\item $\{$StudentId, GroupId, StudentName, GroupName$\}$
+
+\end{itemize}
+
+\item $\{$StudentId, CourseId$\}^{+}$
+
+\begin{itemize}
+
+\item $\{$StudentId, CourseId$\}$
+
+\item $\{$StudentId, CourseId, StudentName, CourseName$\}$
+
+\end{itemize}
+
+\item $\{$GroupId, CourseId$\}^{+}$
+
+\begin{itemize}
+
+\item $\{$GroupId, CourseId$\}$
+
+\item $\{$GroupId, CourseId, GroupName, CourseName$\}$
+
+\end{itemize}
+
+\end{enumerate}
+
+\medskip
+
+$\{$StudentId, GroupId, CourseId$\}$ - минимальное по включению.
+
+\medskip
+
+\item Теперь будем минимизировать множество функциональных зависимостей
+
+\begin{enumerate}
+
+\item $\{$StudentId $\rightarrow$ StudentName$\}$ убрать не можем, так как иначе никак не вывести StudentName
+
+\item $\{$GroupId $\rightarrow$ GroupName$\}$ убрать не можем, так как иначе никак не вывести GroupName
+
+\item $\{$CourseId $\rightarrow$ CourseName$\}$ убрать не можем, так как иначе никак не вывести CourseName
+
+\item $\{$StudentId, GroupId, CourseId $\rightarrow$ Mark$\}$ убрать не можем, так как иначе никак не вывести Mark
+
+\end{enumerate}
+
+\medskip
+
+В итоге получим следующее неприводимое множество функциональных зависимостей:
+
+\begin{itemize}
+
+\item StudentId $\rightarrow$ StudentName
+
+\item GroupId $\rightarrow$ GroupName
+
+\item CourseId $\rightarrow$ CourseName
+
+\item StudentId, GroupId, CourseId $\rightarrow$ Mark
+
+\end{itemize}
+
+\end{itemize}
+
+\end{document}
